@@ -1,4 +1,3 @@
-#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -32,9 +31,7 @@ int main() {
 
     // Initialize buckets
     for (i = 0; i < NUM_BUCKETS; i++) {
-        // Calculate the size of each bucket dynamically based on the number of elements it will contain
-        int bucket_size = (ARRAY_SIZE / NUM_BUCKETS) + ((i < ARRAY_SIZE % NUM_BUCKETS) ? 1 : 0);
-        buckets[i].bucket = (int*)malloc(bucket_size * sizeof(int));
+        buckets[i].bucket = (int*)malloc(ARRAY_SIZE * sizeof(int)); // Allocate maximum possible size
         buckets[i].count = 0;
     }
 
@@ -46,11 +43,10 @@ int main() {
         buckets[index].bucket[buckets[index].count++] = array[i];
     }
 
-    
-    start_time = omp_get_wtime();
+   
+    start_time = clock();
 
-    // Parallel sort each bucket using OpenMP
-    #pragma omp parallel for
+    // Sequentially sort each bucket
     for (i = 0; i < NUM_BUCKETS; i++) {
         qsort(buckets[i].bucket, buckets[i].count, sizeof(int), compare);
     }
@@ -64,18 +60,23 @@ int main() {
         free(buckets[i].bucket);
     }
 
-    end_time = omp_get_wtime();
+    end_time = clock();
 
-    total_time = end_time - start_time;
+    
+    total_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
 
+    
     computation_time = total_time;
 
+    
     communication_time = 0.0;
 
+   
     printf("Total Execution Time: %.6f seconds\n", total_time);
     printf("Computation Time: %.6f seconds\n", computation_time);
     printf("Communication Time: %.6f seconds\n", communication_time);
 
+    
     double ratio = communication_time / computation_time;
     printf("Communication/Computation Ratio: %.6f\n", ratio);
 
